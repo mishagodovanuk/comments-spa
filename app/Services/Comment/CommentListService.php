@@ -7,8 +7,19 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
+/**
+ * CommentListService.
+ */
 final class CommentListService
 {
+    /**
+     * Get roots comments.
+     *
+     * @param int $page
+     * @param string $sort
+     * @param string $dir
+     * @return LengthAwarePaginator
+     */
     public function roots(int $page, string $sort, string $dir): LengthAwarePaginator
     {
         $sort = in_array($sort, ['user_name', 'email', 'created_at'], true) ? $sort : 'created_at';
@@ -24,6 +35,14 @@ final class CommentListService
         });
     }
 
+    /**
+     * Get list of comments.
+     *
+     * @param int $page
+     * @param string $sort
+     * @param string $direction
+     * @return array
+     */
     public function list(int $page, string $sort, string $direction): array
     {
         $roots = $this->roots($page, $sort, $direction);
@@ -36,6 +55,12 @@ final class CommentListService
         ];
     }
 
+    /**
+     * Get descendants with caching.
+     *
+     * @param array $rootIds
+     * @return Collection
+     */
     public function descendantsFlat(array $rootIds): Collection
     {
         $rootIds = array_values(array_filter(array_map('intval', $rootIds)));

@@ -15,6 +15,9 @@ use App\Services\Comment\CommentSearchService;
 use App\Services\Comment\CommentService;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * CommentController.
+ */
 final class CommentController extends Controller
 {
     /**

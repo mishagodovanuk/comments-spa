@@ -10,8 +10,18 @@ use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
 use Throwable;
 
+/**
+ * AttachmentService.
+ */
 final class AttachmentService
 {
+    /**
+     * Saving attachments handle function.
+     *
+     * @param UploadedFile|null $file
+     * @return null[]|string[]
+     * @throws Throwable
+     */
     public function handle(?UploadedFile $file): array
     {
         if (!$file) {
@@ -38,10 +48,18 @@ final class AttachmentService
                 'mime' => $file->getMimeType(),
                 'size' => $file->getSize(),
             ]);
+
             throw $e;
         }
     }
 
+    /**
+     * Txt store funciton.
+     *
+     * @param UploadedFile $file
+     * @param string $original
+     * @return string[]
+     */
     private function storeTxt(UploadedFile $file, string $original): array
     {
         if (($file->getSize() ?? 0) > 100 * 1024) {
@@ -56,6 +74,14 @@ final class AttachmentService
         return ['type' => 'text', 'path' => $path, 'original' => $original];
     }
 
+    /**
+     * Image store function.
+     *
+     * @param UploadedFile $file
+     * @param string $ext
+     * @param string $original
+     * @return string[]
+     */
     private function storeImage(UploadedFile $file, string $ext, string $original): array
     {
         $manager = new ImageManager(new Driver());

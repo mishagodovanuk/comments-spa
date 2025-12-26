@@ -5,8 +5,16 @@ namespace App\Services\Captcha;
 use App\Models\Captcha;
 use Illuminate\Support\Str;
 
+/**
+ * TextCaptcha.
+ */
 final class TextCaptcha
 {
+    /**
+     * Return captcha.
+     *
+     * @return array
+     */
     public function issue(): array
     {
         $token = Str::random(32);
@@ -21,6 +29,13 @@ final class TextCaptcha
         return ['token' => $token, 'challenge' => $value];
     }
 
+    /**
+     * Verify captcha.
+     *
+     * @param string $token
+     * @param string $answer
+     * @return void
+     */
     public function verify(string $token, string $answer): void
     {
         $row = Captcha::query()

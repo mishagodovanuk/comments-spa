@@ -87,6 +87,9 @@ const emit = defineEmits(['replied'])
 const showReply = ref(false)
 const lbOpen = ref(false)
 
+/**
+ * Handle created event from the reply form.
+ */
 function onReplied() {
     showReply.value = false
     emit('replied')

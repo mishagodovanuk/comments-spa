@@ -5,11 +5,30 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Symfony\Component\Process\Process;
 
+/**
+ * ElasticCommentsCreateIndex command.
+ */
 final class ElasticCommentsCreateIndex extends Command
 {
+    /**
+     * Command signature.
+     *
+     * @var string
+     */
     protected $signature = 'elastic:comments-create-index {--force : Delete index if exists}';
-    protected $description = 'Create Elasticsearch index + alias for comments (scalable, versioned index) using curl (file body, stable)';
 
+    /**
+     * Command description.
+     *
+     * @var string
+     */
+    protected $description = 'Create Elasticsearch index + alias for comments';
+
+    /**
+     * Main handle function.
+     *
+     * @return int
+     */
     public function handle(): int
     {
         $host  = rtrim((string) config('elastic.host'), '/');
@@ -85,6 +104,14 @@ final class ElasticCommentsCreateIndex extends Command
         return self::SUCCESS;
     }
 
+    /**
+     * Cecck aliases.
+     *
+     * @param string $host
+     * @param string $index
+     * @param string $alias
+     * @return void
+     */
     private function ensureAlias(string $host, string $index, string $alias): void
     {
         if ($alias === '') {
@@ -118,6 +145,13 @@ final class ElasticCommentsCreateIndex extends Command
         }
     }
 
+    /**
+     * Check index exist.
+     *
+     * @param string $host
+     * @param string $index
+     * @return bool
+     */
     private function existsIndex(string $host, string $index): bool
     {
         $p = new Process([
@@ -137,6 +171,14 @@ final class ElasticCommentsCreateIndex extends Command
         return $p->getExitCode() === 0 && $code === '200';
     }
 
+    /**
+     * Curl method.
+     *
+     * @param string $method
+     * @param string $url
+     * @param string|null $jsonBody
+     * @return array
+     */
     private function curl(string $method, string $url, ?string $jsonBody = null): array
     {
         $tmpFile = null;
@@ -168,7 +210,7 @@ final class ElasticCommentsCreateIndex extends Command
                 $cmd[] = '-H';
                 $cmd[] = 'Content-Type: application/json';
                 $cmd[] = '--data-binary';
-                $cmd[] = '@' . $tmpFile; // IMPORTANT: file upload (Content-Length ok, no chunked)
+                $cmd[] = '@' . $tmpFile;
             }
 
             $p = new Process($cmd);

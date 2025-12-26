@@ -5,10 +5,19 @@ namespace App\Services\Comment;
 use HTMLPurifier;
 use HTMLPurifier_Config;
 
+/**
+ * CommentSanitizer.
+ */
 final class CommentSanitizer
 {
+    /**
+     * @var HTMLPurifier
+     */
     private HTMLPurifier $purifier;
 
+    /**
+     * Add sanitizer config.
+     */
     public function __construct()
     {
         $config = HTMLPurifier_Config::createDefault();
@@ -27,6 +36,12 @@ final class CommentSanitizer
         $this->purifier = new HTMLPurifier($config);
     }
 
+    /**
+     * Public sanitize function.
+     *
+     * @param string $raw
+     * @return string
+     */
     public function sanitize(string $raw): string
     {
         return $this->purifier->purify($raw);

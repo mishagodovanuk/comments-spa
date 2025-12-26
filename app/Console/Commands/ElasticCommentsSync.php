@@ -6,11 +6,30 @@ use App\Models\Comment;
 use App\Services\Elastic\ElasticCommentIndexer;
 use Illuminate\Console\Command;
 
+/**
+ * ElasticCommentsSync command.
+ */
 final class ElasticCommentsSync extends Command
 {
+    /**
+     * Syncronize command sygnature.
+     *
+     * @var string
+     */
     protected $signature = 'elastic:comments-sync {--chunk=200} {--from-id=1} {--to-id=}';
+
+    /**
+     * Command description.
+     *
+     * @var string
+     */
     protected $description = 'Backfill: index existing comments into Elasticsearch (alias comments)';
 
+    /**
+     * Synchronize comments with elastic.
+     *
+     * @return int
+     */
     public function handle(): int
     {
         $chunk = max(1, (int) $this->option('chunk'));

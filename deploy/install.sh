@@ -3,15 +3,39 @@ set -euo pipefail
 
 SAIL="./vendor/bin/sail"
 
+if [ ! -f .env ]; then
+  echo "==> Copying .env.example to .env"
+  cp .env.example .env
+fi
+
 echo "==> Up containers"
 $SAIL up -d
+
+echo "==> Install Composer dependencies"
+$SAIL exec -T laravel.test bash -lc '
+if [ ! -d vendor ]; then
+  composer install --no-interaction --prefer-dist
+fi
+'
+
+echo "==> Install NPM dependencies"
+$SAIL exec -T laravel.test bash -lc '
+if [ ! -d node_modules ]; then
+  npm install
+fi
+'
+
+echo "==> Build frontend assets"
+$SAIL exec -T laravel.test bash -lc '
+npm run build
+'
 
 echo "==> Wait for MySQL"
 $SAIL exec -T mysql bash -lc '
 for i in {1..90}; do
   mysqladmin ping -h "mysql" -p"${MYSQL_ROOT_PASSWORD:-password}" --silent && exit 0
   sleep 1
-done
+ done
 exit 1
 ' || true
 
@@ -37,7 +61,7 @@ exit 1
 echo "==> Laravel: clear caches"
 $SAIL artisan optimize:clear
 
-echo "==> Laravel: migrate"
+echo "==> Laravel: migrate database"
 $SAIL artisan migrate --force
 
 echo "==> Elasticsearch: create index + sync comments"

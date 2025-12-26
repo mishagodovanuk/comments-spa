@@ -77,6 +77,10 @@ const store = useCommentsStore()
 const q = ref(store.q ?? '')
 let qTimer = null
 
+/**
+ * Watch the search input.
+ * Used for elastic search.
+ */
 watch(q, (val) => {
     if (qTimer) clearTimeout(qTimer)
 
@@ -95,6 +99,13 @@ watch(q, (val) => {
     }, 400)
 })
 
+
+/**
+ * Component mount:
+ * - Initial load of comments
+ * - Realtime updates via Laravel Echo:
+ * - Listen on "comments" channel for CommentCreated event
+ */
 onMounted(() => {
     store.fetch()
 
@@ -114,6 +125,10 @@ onMounted(() => {
     }
 })
 
+/**
+ * Component unmount:
+ * Leave Echo channel
+ */
 onBeforeUnmount(() => {
     if (qTimer) clearTimeout(qTimer)
 
@@ -122,6 +137,9 @@ onBeforeUnmount(() => {
     }
 })
 
+/**
+ * Reload comments list/tree from the API after create.
+ */
 function reload() {
     store.fetch()
 }

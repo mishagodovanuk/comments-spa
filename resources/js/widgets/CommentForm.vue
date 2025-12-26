@@ -113,10 +113,26 @@ const captcha = reactive({
     question: '',
 })
 
+/**
+ * Remove displayed errors.
+ */
 function clearErrors() {
     Object.keys(errors).forEach(k => delete errors[k])
 }
 
+/**
+ * Client validation for form.
+ *
+ * Validates:
+ * - user_name: required, <= 70, latin letters + digits
+ * - email: required, <= 255, basic email format
+ * - home_page: optional, <= 255, must be http/https URL
+ * - captcha: token must exist, answer required, max lengths
+ * - text: required, <= 5000
+ * - file: extension check + txt size check
+ *
+ * @returns {boolean} true if valid, false otherwise (errors are filled)
+ */
 function validateClient() {
     clearErrors()
 
@@ -156,20 +172,37 @@ function validateClient() {
     return Object.keys(errors).length === 0
 }
 
+/**
+ * File input handler.
+ *
+ * @param {Event} e
+ */
 function onFile(e) {
     form.file = e.target.files?.[0] ?? null
 }
 
+/**
+ * Append an empty HTML tag pair at the end of the current text.
+ *
+ * @param {string} tag Example: "strong", "i", "code"
+ */
 function wrapTag(tag) {
     form.text = `${form.text}<${tag}></${tag}>`
 }
 
+/**
+ * Template for a in text field.
+ */
 function insertLink() {
     form.text = `${form.text}<a href="https://example.com" title="title">link</a>`
 }
 
+/**
+ * Get new captcha from the server.
+ */
 async function loadCaptcha() {
     captcha.loading = true
+
     try {
         const { data } = await api.get('/captcha')
 
@@ -180,10 +213,14 @@ async function loadCaptcha() {
     }
 }
 
+/**
+ * Preview the comment body:
+ */
 async function preview() {
     if (!validateClient()) return
 
     previewLoading.value = true
+
     try {
         const { data } = await api.post('/comments/preview', { text: form.text })
         previewHtml.value = data.html ?? ''
@@ -195,6 +232,9 @@ async function preview() {
     }
 }
 
+/**
+ * Submit a new comment or reply:
+ */
 async function submit() {
     if (!validateClient()) return
 
@@ -205,14 +245,17 @@ async function submit() {
         const fd = new FormData()
 
         if (props.parentId) fd.append('parent_id', String(props.parentId))
+
         fd.append('user_name', form.user_name)
         fd.append('email', form.email)
+
         if (form.home_page) fd.append('home_page', form.home_page)
 
         fd.append('captcha_token', form.captcha_token)
         fd.append('captcha_answer', form.captcha_answer)
 
         fd.append('text', form.text)
+
         if (form.file) fd.append('file', form.file)
 
         await api.post('/comments', fd, { headers: { 'Content-Type': 'multipart/form-data' } })

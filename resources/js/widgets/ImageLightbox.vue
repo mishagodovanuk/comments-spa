@@ -32,16 +32,23 @@ const props = defineProps({
     open: { type: Boolean, required: true },
     src: { type: String, default: '' },
     title: { type: String, default: '' },
-    type: { type: String, default: 'image' }, // 'image' | 'text'
+    type: { type: String, default: 'image' },
 })
 
 const emit = defineEmits(['close'])
+
+/**
+ * Close file popup.
+ */
 function close() { emit('close') }
 
 const loading = ref(false)
 const error = ref(false)
 const text = ref('')
 
+/**
+ * Get text from resource.
+ */
 async function loadText() {
     loading.value = true
     error.value = false

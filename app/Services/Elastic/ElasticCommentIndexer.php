@@ -5,13 +5,27 @@ namespace App\Services\Elastic;
 use App\Models\Comment;
 use Symfony\Component\Process\Process;
 
+/**
+ * ElasticCommentIndexer.
+ *
+ * Elastic service.
+ */
 final class ElasticCommentIndexer
 {
+    /**
+     * @param string $host
+     * @param string $alias
+     */
     public function __construct(
         private readonly string $host,
         private readonly string $alias,
     ) {}
 
+    /**
+     * Return self instance with config.
+     *
+     * @return self
+     */
     public static function fromConfig(): self
     {
         return new self(
@@ -20,6 +34,12 @@ final class ElasticCommentIndexer
         );
     }
 
+    /**
+     * Index comment.
+     *
+     * @param Comment $comment
+     * @return void
+     */
     public function indexComment(Comment $comment): void
     {
         $doc = [
@@ -50,6 +70,14 @@ final class ElasticCommentIndexer
         }
     }
 
+    /**
+     * Delete comment.
+     *
+     * Currently delete functionality not used, only in --force command.
+     *
+     * @param int $id
+     * @return void
+     */
     public function deleteComment(int $id): void
     {
         $index = $this->indexName();
@@ -144,6 +172,11 @@ final class ElasticCommentIndexer
         ];
     }
 
+    /**
+     * Get index name.
+     *
+     * @return string
+     */
     private function indexName(): string
     {
         return $this->alias !== '' ? $this->alias : (string) config('elastic.index');
@@ -161,6 +194,14 @@ final class ElasticCommentIndexer
         );
     }
 
+    /**
+     * Curl.
+     *
+     * @param string $method
+     * @param string $url
+     * @param string|null $jsonBody
+     * @return array
+     */
     private function curl(string $method, string $url, ?string $jsonBody): array
     {
         $tmpFile = null;

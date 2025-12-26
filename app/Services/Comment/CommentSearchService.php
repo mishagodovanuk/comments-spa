@@ -4,10 +4,15 @@ namespace App\Services\Comment;
 
 use App\Services\Elastic\ElasticCommentIndexer;
 
+/**
+ * CommentSearchService.
+ *
+ * Worked with elastic search.
+ */
 final class CommentSearchService
 {
     /**
-     * Fulltext search.
+     * Fulltext search via elastic.
      */
     public function search(string $q, int $page = 1, int $perPage = 20): array
     {

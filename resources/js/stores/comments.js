@@ -1,6 +1,13 @@
 import { defineStore } from 'pinia'
 import { api } from '../lib/api'
 
+/**
+ * Build a nested comments tree from API.
+ *
+ * @param {Array<Object>} roots
+ * @param {Array<Object>} flat
+ * @returns {Array<Object>} tree
+ */
 function buildTree(roots, flat) {
     const byId = new Map()
     const children = new Map()
@@ -24,8 +31,17 @@ function buildTree(roots, flat) {
     return roots.map(r => byId.get(r.id)).filter(Boolean)
 }
 
+/**
+ * Split a flat list of comments into:
+ * - roots: comments that have no parent id.
+ * - flat: comments whose parent exists in the list (descendants)
+ *
+ * @param {Array<Object>} items
+ * @returns {{roots: Array<Object>, flat: Array<Object>}}
+ */
 function splitRootsAndFlat(items) {
     const byId = new Map()
+
     for (const c of items) byId.set(c.id, c)
 
     const roots = []
@@ -58,6 +74,9 @@ export const useCommentsStore = defineStore('comments', {
         q: '',
     }),
     actions: {
+        /**
+         * Fetch comments from API and rebuild tree.
+         */
         async fetch() {
             this.loading = true
             try {
@@ -85,6 +104,7 @@ export const useCommentsStore = defineStore('comments', {
                     this.flat = flat
                     this.meta = data.meta ?? null
                     this.tree = buildTree(this.roots, this.flat)
+
                     return
                 }
 
@@ -97,12 +117,25 @@ export const useCommentsStore = defineStore('comments', {
             }
         },
 
+        /**
+         * Set search query, reset to page 1, then fetch.
+         *
+         * @param {string} q
+         */
         async setQuery(q) {
             this.q = q
             this.page = 1
+
             return this.fetch()
         },
 
+        /**
+         * Update sorting:
+         * - If clicking the same sort field => toggle direction asc/desc
+         * - If switching to a new sort field => default direction to 'asc'
+         *
+         * @param {string} sort
+         */
         async setSort(sort) {
             if (this.sort === sort) {
                 this.direction = this.direction === 'asc' ? 'desc' : 'asc'
@@ -110,12 +143,20 @@ export const useCommentsStore = defineStore('comments', {
                 this.sort = sort
                 this.direction = 'asc'
             }
+
             this.page = 1
+
             return this.fetch()
         },
 
+        /**
+         * Set current page.
+         *
+         * @param {number} page
+         */
         async setPage(page) {
             this.page = page
+
             return this.fetch()
         },
     },

@@ -12,14 +12,30 @@ use Illuminate\Support\Facades\Log;
 use Throwable;
 use App\Jobs\IndexCommentToElastic;
 
+/**
+ * CommentService.
+ *
+ * Used for storing and preview comments.
+ */
 final class CommentService
 {
+    /**
+     * @param CommentSanitizer $sanitizer
+     * @param AttachmentService $attachments
+     * @param TextCaptcha $captcha
+     */
     public function __construct(
         private readonly CommentSanitizer $sanitizer,
         private readonly AttachmentService $attachments,
         private readonly TextCaptcha $captcha,
     ) {}
 
+    /**
+     * Preview comment.
+     *
+     * @param string $text
+     * @return string
+     */
     public function preview(string $text): string
     {
         $raw = (string) $text;
@@ -27,6 +43,16 @@ final class CommentService
         return $this->sanitizer->sanitize($raw);
     }
 
+    /**
+     * Create comment.
+     *
+     * Used elastic and brodcast chanel.
+     *
+     * @param array $data
+     * @param Request $request
+     * @return Comment
+     * @throws Throwable
+     */
     public function create(array $data, Request $request): Comment
     {
         $this->captcha->verify((string) $data['captcha_token'], (string) $data['captcha_answer']);
