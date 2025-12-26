@@ -9,8 +9,9 @@ function buildTree(roots, flat) {
 
     for (const c of all) {
         byId.set(c.id, { ...c, children: [] })
-        if (!children.has(c.parent_id ?? null)) children.set(c.parent_id ?? null, [])
-        children.get(c.parent_id ?? null).push(c.id)
+        const pid = c.parent_id ?? null
+        if (!children.has(pid)) children.set(pid, [])
+        children.get(pid).push(c.id)
     }
 
     for (const [parentId, ids] of children.entries()) {
@@ -21,6 +22,26 @@ function buildTree(roots, flat) {
     }
 
     return roots.map(r => byId.get(r.id)).filter(Boolean)
+}
+
+function splitRootsAndFlat(items) {
+    const byId = new Map()
+    for (const c of items) byId.set(c.id, c)
+
+    const roots = []
+    const flat = []
+
+    for (const c of items) {
+        const pid = c.parent_id ?? null
+
+        if (pid === null || !byId.has(pid)) {
+            roots.push(c)
+        } else {
+            flat.push(c)
+        }
+    }
+
+    return { roots, flat }
 }
 
 export const useCommentsStore = defineStore('comments', {
@@ -34,27 +55,52 @@ export const useCommentsStore = defineStore('comments', {
         direction: 'desc',
         page: 1,
         per_page: 25,
+        q: '',
     }),
     actions: {
         async fetch() {
             this.loading = true
             try {
-                const { data } = await api.get('/comments', {
-                    params: {
-                        sort: this.sort,
-                        direction: this.direction,
-                        page: this.page,
-                    },
-                })
+                const hasQuery = (this.q ?? '').trim().length > 0
+                const url = hasQuery ? '/comments/search' : '/comments'
+
+                const params = {
+                    sort: this.sort,
+                    direction: this.direction,
+                    page: this.page,
+                    per_page: this.per_page,
+                }
+
+                if (hasQuery) {
+                    params.q = this.q
+                }
+
+                const { data } = await api.get(url, { params })
+
+                if (hasQuery) {
+                    const items = data.items ?? []
+                    const { roots, flat } = splitRootsAndFlat(items)
+
+                    this.roots = roots
+                    this.flat = flat
+                    this.meta = data.meta ?? null
+                    this.tree = buildTree(this.roots, this.flat)
+                    return
+                }
 
                 this.roots = data.roots ?? []
                 this.flat = data.descendants_flat ?? []
                 this.meta = data.meta ?? null
-
                 this.tree = buildTree(this.roots, this.flat)
             } finally {
                 this.loading = false
             }
+        },
+
+        async setQuery(q) {
+            this.q = q
+            this.page = 1
+            return this.fetch()
         },
 
         async setSort(sort) {

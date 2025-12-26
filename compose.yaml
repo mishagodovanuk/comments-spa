@@ -87,15 +87,17 @@ services:
             - discovery.type=single-node
             - xpack.security.enabled=false
             - ES_JAVA_OPTS=-Xms512m -Xmx512m
+            - cluster.routing.allocation.disk.threshold_enabled=false
         ports:
             - '${FORWARD_ELASTIC_PORT:-9200}:9200'
         networks:
             - sail
+        volumes:
+            - esdata:/usr/share/elasticsearch/data
         healthcheck:
             test: ["CMD-SHELL", "curl -fsS http://localhost:9200 >/dev/null || exit 1"]
             retries: 10
             timeout: 10s
-
     kibana:
         image: docker.elastic.co/kibana/kibana:8.15.3
         environment:
@@ -156,4 +158,6 @@ volumes:
     sail-redis:
         driver: local
     sail-minio:
+        driver: local
+    esdata:
         driver: local

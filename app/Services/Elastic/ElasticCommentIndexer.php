@@ -3,7 +3,6 @@
 namespace App\Services\Elastic;
 
 use App\Models\Comment;
-use App\Jobs\IndexCommentToElastic;
 use Symfony\Component\Process\Process;
 
 final class ElasticCommentIndexer
@@ -41,8 +40,7 @@ final class ElasticCommentIndexer
             throw new \RuntimeException('Failed to json_encode comment doc for ES.');
         }
 
-        $index = $this->alias !== '' ? $this->alias : (string) config('elastic.index');
-
+        $index = $this->indexName();
         $url = "{$this->host}/{$index}/_doc/{$comment->id}";
 
         $res = $this->curl('PUT', $url, $json);
@@ -54,7 +52,7 @@ final class ElasticCommentIndexer
 
     public function deleteComment(int $id): void
     {
-        $index = $this->alias !== '' ? $this->alias : (string) config('elastic.index');
+        $index = $this->indexName();
         $url = "{$this->host}/{$index}/_doc/{$id}";
 
         $res = $this->curl('DELETE', $url, null);
@@ -62,6 +60,105 @@ final class ElasticCommentIndexer
         if ($res['exit_code'] !== 0) {
             throw new \RuntimeException('Elasticsearch delete failed: ' . ($res['stderr'] ?: $res['stdout']));
         }
+    }
+
+    /**
+     * Search comments.
+     */
+    public function search(string $q, int $page = 1, int $perPage = 20): array
+    {
+        $q = trim($q);
+        $page = max(1, $page);
+        $perPage = max(1, min(200, $perPage));
+
+        $from = ($page - 1) * $perPage;
+
+        $qLower = mb_strtolower($q);
+        $wc = '*' . $this->escapeWildcard($qLower) . '*';
+
+        $body = [
+            'track_total_hits' => true,
+            'from' => $from,
+            'size' => $perPage,
+            'sort' => [
+                ['created_at' => ['order' => 'desc']],
+                ['id' => ['order' => 'desc']],
+            ],
+        ];
+
+        if ($q === '') {
+            $body['query'] = ['match_all' => (object) []];
+        } else {
+            $body['query'] = [
+                'bool' => [
+                    'should' => [
+                        // analyzed text search
+                        ['match' => ['text_raw' => ['query' => $q]]],
+
+                        // keyword substring search (works with your mapping)
+                        ['wildcard' => ['email' => ['value' => $wc]]],
+                        ['wildcard' => ['user_name' => ['value' => $wc]]],
+                    ],
+                    'minimum_should_match' => 1,
+                ],
+            ];
+        }
+
+        $json = json_encode($body, JSON_UNESCAPED_SLASHES);
+
+        if ($json === false) {
+            throw new \RuntimeException('Failed to json_encode search query for ES.');
+        }
+
+        $index = $this->indexName();
+        $url = "{$this->host}/{$index}/_search";
+
+        $res = $this->curl('POST', $url, $json);
+
+        if ($res['exit_code'] !== 0) {
+            throw new \RuntimeException('Elasticsearch search failed: ' . ($res['stderr'] ?: $res['stdout']));
+        }
+
+        $data = json_decode((string) $res['stdout'], true);
+
+        if (!is_array($data)) {
+            throw new \RuntimeException('Elasticsearch search failed: invalid JSON response.');
+        }
+
+        $hits = $data['hits']['hits'] ?? [];
+        $total = (int) (($data['hits']['total']['value'] ?? 0));
+
+        $items = [];
+
+        foreach ($hits as $hit) {
+            if (isset($hit['_source']) && is_array($hit['_source'])) {
+                $items[] = $hit['_source'];
+            }
+        }
+
+        return [
+            'items' => $items,
+            'total' => $total,
+            'page' => $page,
+            'per_page' => $perPage,
+        ];
+    }
+
+    private function indexName(): string
+    {
+        return $this->alias !== '' ? $this->alias : (string) config('elastic.index');
+    }
+
+    /**
+     * Escape characters.
+     */
+    private function escapeWildcard(string $value): string
+    {
+        return str_replace(
+            ['\\', '*', '?'],
+            ['\\\\', '\\*', '\\?'],
+            $value
+        );
     }
 
     private function curl(string $method, string $url, ?string $jsonBody): array
