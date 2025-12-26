@@ -18,7 +18,7 @@ final class CommentResource extends JsonResource
             'text_html' => $this->text_html,
             'attachment' => $this->attachment_path
                 ? [
-                    'url' => Storage::url($this->attachment_path),
+                    'url' => url(Storage::url($this->attachment_path)),
                     'original_name' => $this->attachment_original_name,
                     'type' => $this->attachment_type,
                 ]

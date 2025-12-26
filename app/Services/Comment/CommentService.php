@@ -20,6 +20,13 @@ final class CommentService
         private readonly TextCaptcha $captcha,
     ) {}
 
+    public function preview(string $text): string
+    {
+        $raw = (string) $text;
+
+        return $this->sanitizer->sanitize($raw);
+    }
+
     public function create(array $data, Request $request): Comment
     {
         $this->captcha->verify((string) $data['captcha_token'], (string) $data['captcha_answer']);

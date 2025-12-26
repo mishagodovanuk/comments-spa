@@ -25,7 +25,6 @@
                 </div>
             </div>
 
-            <!-- Панель форматирования -->
             <div class="flex gap-2 flex-wrap">
                 <button type="button" class="px-2 py-1 border rounded btn-neon" @click="wrapTag('i')">i</button>
                 <button type="button" class="px-2 py-1 border rounded btn-neon" @click="wrapTag('strong')">strong</button>
@@ -45,12 +44,11 @@
                 <p v-if="errors.file" class="text-red-600 text-sm">{{ errors.file }}</p>
             </div>
 
-            <!-- CAPTCHA -->
             <div class="grid md:grid-cols-2 gap-3 items-end">
                 <div>
                     <div class="text-sm mb-1">CAPTCHA *</div>
 
-                    <div class="p-3 border rounded text-sm glass">
+                    <div class="p-3 border rounded text-sm glass captcha-no-copy">
                         <template v-if="captcha.loading">Loading captcha...</template>
                         <template v-else>
                             <div class="font-semibold">Answer:</div>
@@ -123,16 +121,37 @@ function validateClient() {
     clearErrors()
 
     if (!form.user_name) errors.user_name = 'Required'
+    else if (form.user_name.length > 70) errors.user_name = 'Max 70 characters'
     else if (!/^[a-zA-Z0-9]+$/.test(form.user_name)) errors.user_name = 'Only latin letters & digits'
 
     if (!form.email) errors.email = 'Required'
-    else if (!/^\S+@\S+\.\S+$/.test(form.email)) errors.email = 'Invalid email'
+    else if (form.email.length > 255) errors.email = 'Max 255 characters'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = 'Invalid email'
 
-    if (form.home_page && !/^https?:\/\/\S+$/i.test(form.home_page)) errors.home_page = 'Invalid URL'
+    if (form.home_page) {
+        if (form.home_page.length > 255) errors.home_page = 'Max 255 characters'
+        else if (!/^https?:\/\/\S+$/i.test(form.home_page)) errors.home_page = 'Invalid URL'
+    }
+
+    if (!form.captcha_token) errors.captcha_answer = 'Captcha not loaded'
+    else if (String(form.captcha_token).length > 64) errors.captcha_answer = 'Captcha token too long'
+
+    if (!form.captcha_answer) errors.captcha_answer = 'Required'
+    else if (String(form.captcha_answer).length > 20) errors.captcha_answer = 'Max 20 characters'
 
     if (!form.text) errors.text = 'Required'
-    if (!form.captcha_answer) errors.captcha_answer = 'Required'
-    if (!form.captcha_token) errors.captcha_answer = 'Captcha not loaded'
+    else if (form.text.length > 5000) errors.text = 'Max 5000 characters'
+
+    if (form.file) {
+        const ext = (form.file.name.split('.').pop() || '').toLowerCase()
+        const ok = ['jpg', 'jpeg', 'png', 'gif', 'txt'].includes(ext)
+
+        if (!ok) errors.file = 'Allowed: jpg, jpeg, png, gif, txt'
+
+        if (!errors.file && ext === 'txt' && form.file.size > 100 * 1024) {
+            errors.file = 'TXT max 100KB'
+        }
+    }
 
     return Object.keys(errors).length === 0
 }
@@ -198,7 +217,6 @@ async function submit() {
 
         await api.post('/comments', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
 
-        // reset частково (логін/емейл можна не чистити, але для тестового хай так)
         form.text = ''
         form.captcha_answer = ''
         form.file = null
