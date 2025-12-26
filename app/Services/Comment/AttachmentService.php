@@ -51,7 +51,7 @@ final class AttachmentService
         $name = Str::uuid()->toString() . '.txt';
         $path = "comments/txt/{$name}";
 
-        Storage::disk(config('filesystems.default'))->put($path, file_get_contents($file->getRealPath()));
+        Storage::disk('public')->put($path, file_get_contents($file->getRealPath()));
 
         return ['type' => 'text', 'path' => $path, 'original' => $original];
     }
@@ -73,7 +73,7 @@ final class AttachmentService
         $name = Str::uuid()->toString() . '.' . $ext;
         $path = "comments/images/{$name}";
 
-        Storage::disk(config('filesystems.default'))->put($path, $encoded);
+        Storage::disk('public')->put($path, $encoded);
 
         return ['type' => 'image', 'path' => $path, 'original' => $original];
     }

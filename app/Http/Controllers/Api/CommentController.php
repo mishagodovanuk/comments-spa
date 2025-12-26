@@ -17,6 +17,12 @@ use Illuminate\Http\JsonResponse;
 
 final class CommentController extends Controller
 {
+    /**
+     * @param CommentService $service
+     * @param CommentListService $list
+     * @param CommentSearchService $search
+     * @param TextCaptcha $captcha
+     */
     public function __construct(
         private readonly CommentService $service,
         private readonly CommentListService $list,
@@ -24,6 +30,12 @@ final class CommentController extends Controller
         private readonly TextCaptcha $captcha,
     ) {}
 
+    /**
+     * Comment list.
+     *
+     * @param CommentIndexRequest $request
+     * @return JsonResponse
+     */
     public function index(CommentIndexRequest $request): JsonResponse
     {
         $result = $this->list->list(
@@ -35,6 +47,13 @@ final class CommentController extends Controller
         return response()->json(new CommentListResource($result));
     }
 
+    /**
+     * Comment store.
+     *
+     * @param CommentStoreRequest $request
+     * @return JsonResponse
+     * @throws \Throwable
+     */
     public function store(CommentStoreRequest $request): JsonResponse
     {
         $comment = $this->service->create($request->validated(), $request);
@@ -42,18 +61,35 @@ final class CommentController extends Controller
         return response()->json(new CommentCreatedResource($comment), 201);
     }
 
+    /**
+     * Comment preview.
+     *
+     * @param CommentPreviewRequest $request
+     * @return JsonResponse
+     */
     public function preview(CommentPreviewRequest $request): JsonResponse
     {
         return response()->json([
-            'html' => $this->service->preview($request->text()),
+            'html' => $this->service->preview((string) $request->input('text')),
         ]);
     }
 
+    /**
+     * Captcha.
+     *
+     * @return JsonResponse
+     */
     public function captcha(): JsonResponse
     {
         return response()->json($this->captcha->issue());
     }
 
+    /**
+     * Comment search.
+     *
+     * @param CommentSearchRequest $request
+     * @return JsonResponse
+     */
     public function search(CommentSearchRequest $request): JsonResponse
     {
         return response()->json(

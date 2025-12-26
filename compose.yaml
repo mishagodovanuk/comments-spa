@@ -19,6 +19,7 @@ services:
             IGNITION_LOCAL_SITES_PATH: '${PWD}'
         volumes:
             - '.:/var/www/html'
+            - './docker/nginx/default.conf:/etc/nginx/sites-available/default'
         networks:
             - sail
         depends_on:

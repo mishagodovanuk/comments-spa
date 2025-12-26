@@ -9,26 +9,41 @@
 
                 <div class="text-sm opacity-70">{{ comment.email }}</div>
 
+                <div v-if="comment.home_page" class="text-sm mt-1">
+                    <a :href="comment.home_page" target="_blank" rel="noopener" class="underline">
+                        {{ comment.home_page }}
+                    </a>
+                </div>
+
                 <div class="mt-2 prose max-w-none" v-html="comment.text_html"></div>
 
-                <div v-if="comment.attachment_url" class="mt-2">
-                    <template v-if="comment.attachment_type === 'image'">
+                <div v-if="comment.attachment" class="mt-2">
+                    <template v-if="comment.attachment.type === 'image'">
                         <button type="button" class="underline" @click="lbOpen = true">
-                            🖼 {{ comment.attachment_original_name || 'image' }}
+                            🖼 {{ comment.attachment.original_name || 'image' }}
                         </button>
 
                         <ImageLightbox
                             :open="lbOpen"
-                            :src="comment.attachment_url"
-                            :title="comment.attachment_original_name || 'image'"
+                            :src="comment.attachment.url"
+                            :title="comment.attachment.original_name || 'image'"
+                            type="image"
                             @close="lbOpen = false"
                         />
                     </template>
 
                     <template v-else>
-                        <a :href="comment.attachment_url" target="_blank" class="underline">
-                            📄 {{ comment.attachment_original_name || 'file' }}
-                        </a>
+                        <button type="button" class="underline" @click="lbOpen = true">
+                            📄 {{ comment.attachment.original_name || 'file' }}
+                        </button>
+
+                        <ImageLightbox
+                            :open="lbOpen"
+                            :src="comment.attachment.url"
+                            :title="comment.attachment.original_name || 'file'"
+                            type="text"
+                            @close="lbOpen = false"
+                        />
                     </template>
                 </div>
 

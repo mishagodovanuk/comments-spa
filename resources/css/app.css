@@ -60,3 +60,10 @@ input::placeholder, textarea::placeholder {
     opacity: 0;
     transform: translateY(6px);
 }
+
+.captcha-no-copy {
+    user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    -moz-user-select: none;
+}
