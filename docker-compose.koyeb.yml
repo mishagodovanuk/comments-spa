@@ -1,0 +1,17 @@
+services:
+  laravel:
+    build:
+      context: .
+      dockerfile: docker/8.5/Dockerfile.koyeb-app
+      args:
+        WWWGROUP: "1000"
+    ports:
+      - "${PORT:-80}:80"
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "true"
+      APP_KEY: "${APP_KEY}"
+
+      WWWUSER: "1337"
+      WWWGROUP: "1000"
+      SUPERVISOR_PHP_USER: "sail"
