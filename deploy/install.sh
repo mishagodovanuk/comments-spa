@@ -70,6 +70,20 @@ cd /var/www/html
 npm run build
 '
 
+echo "==> Fix permissions + HTMLPurifier cache (storage)"
+docker compose exec -T laravel.test sh -lc '
+cd /var/www/html
+
+grep -q "^HTMLPURIFIER_CACHE_PATH=" .env || echo "HTMLPURIFIER_CACHE_PATH=/var/www/html/storage/app/htmlpurifier" >> .env
+
+mkdir -p storage/app/htmlpurifier
+
+mkdir -p storage/framework/{cache,views,sessions,testing} bootstrap/cache
+
+chown -R www-data:www-data storage bootstrap/cache
+chmod -R ug+rwX storage bootstrap/cache
+'
+
 echo "==> Wait for Elasticsearch"
 docker compose exec -T laravel.test bash -lc '
 for i in $(seq 1 120); do
