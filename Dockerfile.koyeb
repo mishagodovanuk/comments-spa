@@ -3,4 +3,4 @@ FROM koyeb/docker-compose
 COPY . /app
 WORKDIR /app
 
-CMD ["up", "-d"]
+CMD ["docker-compose", "up", "-d"]
