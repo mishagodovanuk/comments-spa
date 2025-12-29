@@ -4,8 +4,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('comments')->group(function () {
     Route::middleware('throttle:api.comments.read')->group(function () {
-        Route::get('/', [CommentController::class, 'index']);
-        Route::get('/search', [CommentController::class, 'search']);
+    Route::get('/', [CommentController::class, 'index']);
+    Route::get('/search', [CommentController::class, 'search']);
     });
     
     Route::middleware(['web', 'throttle:api.comments.create'])->group(function () {
@@ -15,5 +15,5 @@ Route::prefix('comments')->group(function () {
 });
 
 Route::middleware('throttle:api.captcha')->group(function () {
-    Route::get('/captcha', [CommentController::class, 'captcha']);
+Route::get('/captcha', [CommentController::class, 'captcha']);
 });

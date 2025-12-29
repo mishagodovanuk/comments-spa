@@ -1,0 +1,6 @@
+FROM koyeb/docker-compose
+
+COPY . /app
+WORKDIR /app
+
+CMD ["up", "-d"]
