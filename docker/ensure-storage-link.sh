@@ -1,16 +1,25 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
-TARGET="../storage/app/public"
-LINK="public/storage"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 
-if [ -L "$LINK" ]; then
-  CURRENT="$(readlink "$LINK")"
-  if [ "$CURRENT" != "$TARGET" ]; then
-    rm -f "$LINK"
+TARGET="${ROOT_DIR}/storage/app/public"
+LINK="${ROOT_DIR}/public/storage"
+
+mkdir -p "${TARGET}"
+
+if [ -L "${LINK}" ]; then
+  CURRENT="$(readlink "${LINK}" || true)"
+  if [ "${CURRENT}" != "${TARGET}" ]; then
+    rm -f "${LINK}"
   fi
 fi
 
-if [ ! -e "$LINK" ]; then
-  ln -s "$TARGET" "$LINK"
+if [ -e "${LINK}" ] && [ ! -L "${LINK}" ]; then
+  rm -rf "${LINK}"
+fi
+
+if [ ! -e "${LINK}" ]; then
+  ln -s "${TARGET}" "${LINK}"
 fi
