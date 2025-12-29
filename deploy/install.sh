@@ -26,32 +26,34 @@ fi
 '
 
 echo "==> Build frontend assets"
-$SAIL exec -T laravel.test bash -lc '
-npm run build
-'
+$SAIL exec -T laravel.test bash -lc 'npm run build'
 
 echo "==> Wait for MySQL"
 $SAIL exec -T mysql bash -lc '
-for i in {1..90}; do
-  mysqladmin ping -h "mysql" -p"${MYSQL_ROOT_PASSWORD:-password}" --silent && exit 0
+for i in $(seq 1 90); do
+  mysqladmin ping -h "127.0.0.1" --silent && exit 0
   sleep 1
- done
+done
+echo "MySQL not ready"
 exit 1
-' || true
+'
 
 echo "==> Wait for Redis"
 $SAIL exec -T redis sh -lc '
-for i in {1..60}; do
+i=1
+while [ $i -le 60 ]; do
   redis-cli ping | grep -q PONG && exit 0
+  i=$((i+1))
   sleep 1
 done
+echo "Redis not ready"
 exit 1
 '
 
 echo "==> Wait for Elasticsearch"
 $SAIL exec -T laravel.test bash -lc '
-for i in {1..120}; do
-  curl -fsS http://elasticsearch:9200 >/dev/null && exit 0
+for i in $(seq 1 120); do
+  curl -fsS --max-time 2 http://elasticsearch:9200 >/dev/null && exit 0
   sleep 1
 done
 echo "Elasticsearch not ready"
@@ -69,6 +71,6 @@ $SAIL artisan elastic:comments-create-index --force
 $SAIL artisan elastic:comments-sync
 
 echo "==> Ensure queue worker is running"
-$SAIL up -d queue 2>/dev/null || true
+$SAIL up -d queue
 
 echo "==> Done"

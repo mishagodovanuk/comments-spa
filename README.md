@@ -10,6 +10,7 @@ _Advanced threaded comments app with Laravel & Vue_
 - [Technology Stack](#technology-stack)
 - [Project Structure](#project-structure)
 - [Installation & Quick Start](#installation--quick-start)
+- [CI/CD & Deployment](#cicd--deployment)
 - [Manual Deployment](#manual-deployment)
 - [Docker Integration](#docker-integration)
 - [CAPTCHA System](#captcha-system)
@@ -156,6 +157,51 @@ You can also deploy the application manually (without Docker/Sail) as follows:
    ```bash
    php artisan serve
    ```
+
+---
+
+## CI/CD & Deployment
+
+### GitHub Actions CI/CD
+
+Проект настроен с автоматическим CI/CD через GitHub Actions:
+
+- **CI (Continuous Integration):**
+  - Автоматически запускается при каждом push и pull request
+  - Запускает тесты PHP (`php artisan test`)
+  - Проверяет сборку фронтенда (`npm run build`)
+  - Использует MySQL и Redis как services в GitHub Actions
+
+- **CD (Continuous Deployment):**
+  - **Railway.app** (рекомендуется): автоматически деплоит при push в `main`/`master`
+  - Railway определяет `compose.yaml` и запускает все сервисы автоматически
+  - Для VPS: можно настроить SSH деплой через GitHub Secrets (см. DEPLOYMENT.md)
+
+### Настройка деплоя
+
+**Рекомендуемый вариант: Railway.app** ⭐
+
+Railway автоматически деплоит при каждом push в `main`/`master`. Просто:
+
+1. Зайдите на https://railway.app
+2. Sign up через GitHub
+3. New Project → Deploy from GitHub repo → выберите репозиторий
+4. Railway автоматически определит `compose.yaml` и задеплоит
+5. Настройте переменные окружения в Railway Dashboard
+6. Добавьте MySQL и Redis через Railway (New → Database)
+
+**Для других платформ:**
+- См. подробные инструкции в [`DEPLOYMENT.md`](DEPLOYMENT.md)
+- Oracle Cloud (VPS), Render, Fly.io - все варианты описаны
+
+### Файлы CI/CD
+
+- `.github/workflows/ci.yml` - основной CI workflow (тесты + сборка)
+- `railway.json` - конфигурация для Railway.app (опционально)
+- `.github/workflows/ci-flyio.yml.example` - пример для Fly.io
+- `.github/workflows/ci-railway.yml.example` - пример для Railway (не нужен, Railway работает автоматически)
+
+Подробнее: [`DEPLOYMENT.md`](DEPLOYMENT.md)
 
 ---
 
