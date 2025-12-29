@@ -1,35 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SAIL="./vendor/bin/sail"
-
 if [ ! -f .env ]; then
   echo "==> Copying .env.example to .env"
   cp .env.example .env
 fi
 
-echo "==> Up containers"
-$SAIL up -d
-
-echo "==> Install Composer dependencies"
-$SAIL exec -T laravel.test bash -lc '
-if [ ! -d vendor ]; then
-  composer install --no-interaction --prefer-dist
-fi
-'
-
-echo "==> Install NPM dependencies"
-$SAIL exec -T laravel.test bash -lc '
-if [ ! -d node_modules ]; then
-  npm install
-fi
-'
-
-echo "==> Build frontend assets"
-$SAIL exec -T laravel.test bash -lc 'npm run build'
+echo "==> Up containers (docker compose)"
+docker compose up -d
 
 echo "==> Wait for MySQL"
-$SAIL exec -T mysql bash -lc '
+docker compose exec -T mysql bash -lc '
 for i in $(seq 1 90); do
   mysqladmin ping -h "127.0.0.1" --silent && exit 0
   sleep 1
@@ -39,7 +20,7 @@ exit 1
 '
 
 echo "==> Wait for Redis"
-$SAIL exec -T redis sh -lc '
+docker compose exec -T redis sh -lc '
 i=1
 while [ $i -le 60 ]; do
   redis-cli ping | grep -q PONG && exit 0
@@ -50,8 +31,35 @@ echo "Redis not ready"
 exit 1
 '
 
+echo "==> Install Composer dependencies (inside container)"
+docker compose exec -T laravel.test bash -lc '
+cd /var/www/html
+composer install --no-interaction --prefer-dist
+'
+
+echo "==> Restart app container (supervisor/web pick up vendor)"
+docker compose restart laravel.test
+
+echo "==> Ensure APP_KEY exists"
+docker compose exec -T laravel.test bash -lc '
+cd /var/www/html
+php artisan key:generate --force >/dev/null 2>&1 || true
+'
+
+echo "==> Install NPM dependencies"
+docker compose exec -T laravel.test bash -lc '
+cd /var/www/html
+npm ci || npm install
+'
+
+echo "==> Build frontend assets"
+docker compose exec -T laravel.test bash -lc '
+cd /var/www/html
+npm run build
+'
+
 echo "==> Wait for Elasticsearch"
-$SAIL exec -T laravel.test bash -lc '
+docker compose exec -T laravel.test bash -lc '
 for i in $(seq 1 120); do
   curl -fsS --max-time 2 http://elasticsearch:9200 >/dev/null && exit 0
   sleep 1
@@ -61,16 +69,19 @@ exit 1
 '
 
 echo "==> Laravel: clear caches"
-$SAIL artisan optimize:clear
+docker compose exec -T laravel.test bash -lc 'cd /var/www/html && php artisan optimize:clear'
 
 echo "==> Laravel: migrate database"
-$SAIL artisan migrate --force
+docker compose exec -T laravel.test bash -lc 'cd /var/www/html && php artisan migrate --force'
 
 echo "==> Elasticsearch: create index + sync comments"
-$SAIL artisan elastic:comments-create-index --force
-$SAIL artisan elastic:comments-sync
+docker compose exec -T laravel.test bash -lc 'cd /var/www/html && php artisan elastic:comments-create-index --force'
+docker compose exec -T laravel.test bash -lc 'cd /var/www/html && php artisan elastic:comments-sync'
 
 echo "==> Ensure queue worker is running"
-$SAIL up -d queue
+docker compose up -d queue
+
+echo "==> Health check (HTTP)"
+curl -fsS --max-time 5 http://localhost/ >/dev/null || true
 
 echo "==> Done"
