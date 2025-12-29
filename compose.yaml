@@ -29,7 +29,9 @@ services:
             - soketi
             - queue
         command: >
-            bash -lc "php artisan serve --host=0.0.0.0 --port=80 --no-reload"
+            bash -lc "cd /var/www/html &&
+            while [ ! -f vendor/autoload.php ]; do sleep 1; done;
+            php artisan serve --host=0.0.0.0 --port=80 --no-reload"
 
     queue:
         image: 'sail-8.5/app'
