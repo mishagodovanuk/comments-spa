@@ -10,12 +10,24 @@ echo "==> Up containers (docker compose)"
 docker compose up -d
 
 echo "==> Wait for MySQL"
-docker compose exec -T mysql bash -lc '
-for i in $(seq 1 90); do
-  mysqladmin ping -h "127.0.0.1" --silent && exit 0
+docker compose exec -T mysql sh -lc '
+for i in $(seq 1 120); do
+  # 1) ping daemon
+  if mysqladmin ping -h "localhost" -uroot -p"${MYSQL_ROOT_PASSWORD:-}" --silent 2>/dev/null; then
+    exit 0
+  fi
+
+  # 2) fallback: simple query (інколи ping бреше/падає без причин)
+  if mysql -h "localhost" -uroot -p"${MYSQL_ROOT_PASSWORD:-}" -e "SELECT 1" >/dev/null 2>&1; then
+    exit 0
+  fi
+
   sleep 1
 done
+
 echo "MySQL not ready"
+echo "--- mysql logs (tail 80) ---"
+tail -n 80 /var/log/mysql/error.log 2>/dev/null || true
 exit 1
 '
 
