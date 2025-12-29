@@ -1,5 +1,6 @@
 services:
     laravel.test:
+        working_dir: /var/www/html
         build:
             context: './docker/8.5'
             dockerfile: Dockerfile
