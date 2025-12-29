@@ -3,4 +3,6 @@ FROM koyeb/docker-compose
 COPY . /app
 WORKDIR /app
 
+RUN composer install --optimize-autoloader --no-dev --no-interaction
+
 CMD ["docker-compose", "up", "-d"]
