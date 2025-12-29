@@ -1,0 +1,15 @@
+# Пример для Railway.app
+# Railway делает деплой автоматически, поэтому здесь только CI
+
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    # ... (те же шаги что в ci.yml)
+

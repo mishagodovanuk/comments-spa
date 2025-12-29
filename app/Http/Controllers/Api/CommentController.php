@@ -41,13 +41,9 @@ final class CommentController extends Controller
      */
     public function index(CommentIndexRequest $request): JsonResponse
     {
-        $result = $this->list->list(
-            page: $request->page(),
-            sort: $request->sort(),
-            direction: $request->direction(),
-        );
+        $result = $this->list->list(page: $request->page(), sort: $request->sort(), direction: $request->direction());
 
-        return response()->json(new CommentListResource($result));
+        return response()->json(CommentListResource::make($result));
     }
 
     /**
@@ -61,7 +57,7 @@ final class CommentController extends Controller
     {
         $comment = $this->service->create($request->validated(), $request);
 
-        return response()->json(new CommentCreatedResource($comment), 201);
+        return response()->json(CommentCreatedResource::make($comment), 201);
     }
 
     /**

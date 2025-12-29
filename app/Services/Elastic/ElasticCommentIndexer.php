@@ -246,4 +246,87 @@ final class ElasticCommentIndexer
             }
         }
     }
+
+    /**
+     * Check if index exists.
+     */
+    public function existsIndex(string $index = null): bool
+    {
+        $index ??= (string) config('elastic.index');
+        $url = "{$this->host}/{$index}";
+        $cmd = [
+            'curl',
+            '-sS',
+            '-o', '/dev/null',
+            '-w', '%{http_code}',
+            '--connect-timeout', '3',
+            '--max-time', '20',
+            '-I',
+            $url
+        ];
+        $p = new Process($cmd);
+        $p->run();
+        $code = trim($p->getOutput());
+
+        return $p->getExitCode() === 0 && $code === '200';
+    }
+
+    /**
+     * Create index with given body.
+     */
+    public function createIndex(array $body, string $index = null): bool
+    {
+        $index ??= (string) config('elastic.index');
+        $url = "{$this->host}/{$index}";
+        $json = json_encode($body, JSON_UNESCAPED_SLASHES);
+        if ($json === false) {
+            return false;
+        }
+        $res = $this->curl('PUT', $url, $json);
+
+        return $res['exit_code'] === 0 && $this->existsIndex($index);
+    }
+
+    /**
+     * Delete index.
+     */
+    public function deleteIndex(string $index = null): bool
+    {
+        $index ??= (string) config('elastic.index');
+        $url = "{$this->host}/{$index}";
+        $res = $this->curl('DELETE', $url, null);
+
+        return $res['exit_code'] === 0;
+    }
+
+    /**
+     * Ensure alias points to correct index.
+     */
+    public function ensureAlias(string $index = null, string $alias = null): bool
+    {
+        $index ??= (string) config('elastic.index');
+        $alias ??= $this->alias;
+
+        if ($alias === '') {
+            return false;
+        }
+
+        $actions = [
+            'actions' => [
+                ['remove' => ['index' => '*', 'alias' => $alias]],
+                ['add' => ['index' => $index, 'alias' => $alias]],
+            ],
+        ];
+
+        $json = json_encode($actions, JSON_UNESCAPED_SLASHES);
+
+        if ($json === false) {
+            return false;
+        }
+
+        $url = "{$this->host}/_aliases";
+        $res = $this->curl('POST', $url, $json);
+
+        return $res['exit_code'] === 0;
+    }
 }
