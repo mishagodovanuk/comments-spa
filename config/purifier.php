@@ -11,46 +11,32 @@ return [
     'cacheFileMode'    => 0755,
 
     'settings' => [
-        /**
-         * ✅ TЗ профіль: allowlist тільки:
-         * <a href="" title=""></a>, <code></code>, <i></i>, <strong></strong>
-         * Все інше вирізається/санітизується.
-         * XHTML doctype + блок unsafe-схем.
-         */
         'default' => [
-            // Вимога "валидный XHTML"
             'HTML.Doctype' => 'XHTML 1.0 Transitional',
 
-            // Дозволені теги/атрибути
             'HTML.Allowed' => 'a[href|title],code,i,strong',
 
-            // Забороняємо будь-які стилі (щоб не було style-based XSS)
             'CSS.AllowedProperties' => [],
 
-            // Дозволені URI схеми (важливо: блокує javascript:)
             'URI.AllowedSchemes' => [
                 'http' => true,
                 'https' => true,
                 'mailto' => true,
             ],
 
-            // Ніяких автопараграфів (бо змінює розмітку непередбачувано)
             'AutoFormat.AutoParagraph' => false,
             'AutoFormat.RemoveEmpty' => true,
         ],
 
-        // Можеш лишити як є — ми їх не використовуємо
         'test' => [
             'Attr.EnableID' => 'true',
         ],
 
-        // Лишаємо, але НЕ використовуємо для коментарів
         'youtube' => [
             'HTML.SafeIframe'      => 'true',
             'URI.SafeIframeRegexp' => "%^(http://|https://|//)(www.youtube.com/embed/|player.vimeo.com/video/)%"
         ],
 
-        // Лишаємо як є (не використовується в comments)
         'custom_definition' => [
             'id'  => 'html5-definitions',
             'rev' => 1,
