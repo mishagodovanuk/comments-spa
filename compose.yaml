@@ -1,4 +1,16 @@
 services:
+    nginx:
+        image: nginx:alpine
+        ports:
+            - '8088:80'
+        volumes:
+            - './docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro'
+        depends_on:
+            - laravel.test
+            - soketi
+        networks:
+            - sail
+
     laravel.test:
         working_dir: /var/www/html
         build:
@@ -10,7 +22,7 @@ services:
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         ports:
-            - '80:80'
+            - '8089:80'
         environment:
             WWWUSER: '${WWWUSER}'
             LARAVEL_SAIL: 1
@@ -19,7 +31,6 @@ services:
             IGNITION_LOCAL_SITES_PATH: '${PWD}'
         volumes:
             - '.:/var/www/html'
-            - './docker/nginx/default.conf:/etc/nginx/sites-available/default'
         networks:
             - sail
         depends_on:
@@ -114,6 +125,8 @@ services:
             SOKETI_DEFAULT_APP_ID: '${PUSHER_APP_ID:-app-id}'
             SOKETI_DEFAULT_APP_KEY: '${PUSHER_APP_KEY:-app-key}'
             SOKETI_DEFAULT_APP_SECRET: '${PUSHER_APP_SECRET:-app-secret}'
+            SOKETI_DEBUG: '1'
+            SOKETI_LOG_LEVEL: 'debug'
         networks:
             - sail
 

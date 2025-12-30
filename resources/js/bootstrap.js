@@ -15,8 +15,10 @@ window.Echo = new Echo({
     key: import.meta.env.VITE_PUSHER_APP_KEY,
     cluster: import.meta.env.VITE_PUSHER_CLUSTER || 'mt1',
     wsHost: import.meta.env.VITE_PUSHER_HOST || window.location.hostname,
-    wsPort: Number(import.meta.env.VITE_PUSHER_PORT || 6001),
-    wssPort: Number(import.meta.env.VITE_PUSHER_PORT || 6001),
-    forceTLS: (import.meta.env.VITE_PUSHER_SCHEME || 'http') === 'https',
+    wsPort: Number(import.meta.env.VITE_PUSHER_PORT || 443),
+    wssPort: Number(import.meta.env.VITE_PUSHER_PORT || 443),
+    path: '/app',
+    forceTLS: String(import.meta.env.VITE_PUSHER_FORCE_TLS || 'true') === 'true',
     enabledTransports: ['ws', 'wss'],
+    disableStats: true,
 });
