@@ -13,6 +13,7 @@ _Advanced threaded comments app with Laravel & Vue_
 - [CI/CD & Deployment](#cicd--deployment)
 - [Manual Deployment](#manual-deployment)
 - [Docker Integration](#docker-integration)
+- [Api documentation](#api-docs)
 - [CAPTCHA System](#captcha-system)
 - [Elasticsearch, Redis & Realtime Flow](#elasticsearch-redis--realtime-flow)
 - [Database Design](#database-design)
@@ -214,6 +215,15 @@ Key containers:
 - **mysql**: MySQL database
 - **redis**: Redis (queue/cache backend, broadcasting)
 - **elasticsearch**: Full-text search/indexing
+
+Helper scripts:
+- `docker/ensure-storage-link.sh` (guarantees correct storage symlink)
+
+---
+
+## Api documentation
+Doc url /docs/api#/
+Swagger documentation with endpoints and schemas
 
 Helper scripts:
 - `docker/ensure-storage-link.sh` (guarantees correct storage symlink)
