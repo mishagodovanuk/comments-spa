@@ -300,7 +300,7 @@ server {
     }
 }
 
-
+```
 ## CAPTCHA System
 - Custom backend-generated CAPTCHA using a random code per session, validated fully on the server.
 - See `App\Services\Captcha\TextCaptcha` for internals.
@@ -340,7 +340,7 @@ server {
 
 ## Database Design
 ### Als default tables (users, migrations, jobs)
-```
+
 ![DB schema](docs/database/workbench-diagram.jpg)
 
 ```
@@ -378,7 +378,7 @@ server {
 - `INDEX(user_name)` / `INDEX(email)` (sorting/filtering)
 
 ---
-
+```
 ## Testing
 Run all tests:
 ```bash
