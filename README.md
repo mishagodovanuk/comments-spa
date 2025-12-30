@@ -339,6 +339,10 @@ server {
 ---
 
 ## Database Design
+### Als default tables (users, migrations, jobs)
+
+(docs/database/workbench-diagram.jpg)
+
 
 ### captchas
 **Table `captchas`:**
