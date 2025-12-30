@@ -165,44 +165,44 @@ You can also deploy the application manually (without Docker/Sail) as follows:
 
 ### GitHub Actions CI/CD
 
-Проект настроен с автоматическим CI/CD через GitHub Actions:
+The project is configured with automatic CI/CD via GitHub Actions:
 
 - **CI (Continuous Integration):**
-  - Автоматически запускается при каждом push и pull request
-  - Запускает тесты PHP (`php artisan test`)
-  - Проверяет сборку фронтенда (`npm run build`)
-  - Использует MySQL и Redis как services в GitHub Actions
+    - Automatically runs on every push and pull request
+    - Executes PHP tests (`php artisan test`)
+    - Checks the frontend build (`npm run build`)
+    - Uses MySQL and Redis as services in GitHub Actions
 
 - **CD (Continuous Deployment):**
-  - **Railway.app** (рекомендуется): автоматически деплоит при push в `main`/`master`
-  - Railway определяет `compose.yaml` и запускает все сервисы автоматически
-  - Для VPS: можно настроить SSH деплой через GitHub Secrets (см. DEPLOYMENT.md)
+    - **Railway.app** (recommended): automatically deploys on push to `main`/`master`
+    - Railway detects `compose.yaml` and launches all services automatically
+    - For VPS: you can set up SSH deployment via GitHub Secrets (see DEPLOYMENT.md)
 
-### Настройка деплоя
+### Deployment Setup
 
-**Рекомендуемый вариант: Railway.app** ⭐
+**Recommended option: Railway.app** ⭐
 
-Railway автоматически деплоит при каждом push в `main`/`master`. Просто:
+Railway automatically deploys on every push to `main`/`master`. Just follow these steps:
 
-1. Зайдите на https://railway.app
-2. Sign up через GitHub
-3. New Project → Deploy from GitHub repo → выберите репозиторий
-4. Railway автоматически определит `compose.yaml` и задеплоит
-5. Настройте переменные окружения в Railway Dashboard
-6. Добавьте MySQL и Redis через Railway (New → Database)
+1. Go to https://railway.app
+2. Sign up using GitHub
+3. New Project → Deploy from GitHub repo → select your repository
+4. Railway will automatically detect `compose.yaml` and deploy it
+5. Configure environment variables in the Railway Dashboard
+6. Add MySQL and Redis via Railway (New → Database)
 
-**Для других платформ:**
-- См. подробные инструкции в [`DEPLOYMENT.md`](DEPLOYMENT.md)
-- Oracle Cloud (VPS), Render, Fly.io - все варианты описаны
+**For other platforms:**
+- See detailed instructions in [`DEPLOYMENT.md`](DEPLOYMENT.md)
+- Oracle Cloud (VPS), Render, Fly.io — all options are described
 
-### Файлы CI/CD
+### CI/CD Files
 
-- `.github/workflows/ci.yml` - основной CI workflow (тесты + сборка)
-- `railway.json` - конфигурация для Railway.app (опционально)
-- `.github/workflows/ci-flyio.yml.example` - пример для Fly.io
-- `.github/workflows/ci-railway.yml.example` - пример для Railway (не нужен, Railway работает автоматически)
+- `.github/workflows/ci.yml` — main CI workflow (tests + build)
+- `railway.json` — configuration for Railway.app (optional)
+- `.github/workflows/ci-flyio.yml.example` — example for Fly.io
+- `.github/workflows/ci-railway.yml.example` — example for Railway (not needed, Railway works automatically)
 
-Подробнее: [`DEPLOYMENT.md`](DEPLOYMENT.md)
+More details: [`DEPLOYMENT.md`](DEPLOYMENT.md)
 
 ---
 
@@ -340,10 +340,10 @@ server {
 
 ## Database Design
 ### Als default tables (users, migrations, jobs)
+```
+![DB schema](docs/database/workbench-diagram.jpg)
 
-(docs/database/workbench-diagram.jpg)
-
-
+```
 ### captchas
 **Table `captchas`:**
 - `id` (bigint, PK)
