@@ -230,6 +230,77 @@ Helper scripts:
 
 ---
 
+## Public access via Tailscale Funnel + Working WebSockets (Soketi)
+
+This project uses Laravel + Soketi (Pusher-compatible) for realtime events.
+To make it work from the internet via **Tailscale Funnel**, we must:
+
+1) expose only **one public entrypoint** (Nginx)
+2) proxy `/app/` (WebSocket endpoint) to Soketi with proper Upgrade headers
+3) configure frontend Echo to connect via **wss** on port **443** and **path `/app`**
+4) keep backend broadcasting pointed to `soketi:6001` inside Docker network
+
+---
+
+### 1) Docker Compose: Nginx reverse proxy in front
+
+We run Laravel using `php artisan serve` inside `laravel.test` (no nginx inside that container),
+so we add a separate `nginx` container as the public entrypoint.
+
+Ports:
+- `nginx` exposes `8088:80` (public entrypoint)
+- `laravel.test` moves to `8089:80` (internal / optional direct access)
+- `soketi` exposes `6001:6001`
+
+Nginx routes:
+- `/` -> `laravel.test:80`
+- `/app/` -> `soketi:6001` (WebSockets)
+
+---
+
+### 2) Nginx config for WebSockets
+
+`docker/nginx/default.conf`:
+
+```nginx
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+server {
+    listen 80;
+    server_name _;
+
+    # WebSockets -> Soketi
+    location ^~ /app/ {
+        proxy_pass http://soketi:6001;
+        proxy_http_version 1.1;
+
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+        proxy_buffering off;
+    }
+
+    # App -> Laravel HTTP
+    location / {
+        proxy_pass http://laravel.test:80;
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+
+
 ## CAPTCHA System
 - Custom backend-generated CAPTCHA using a random code per session, validated fully on the server.
 - See `App\Services\Captcha\TextCaptcha` for internals.
